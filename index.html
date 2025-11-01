@@ -22,11 +22,10 @@
 <body>
   <main class="card" role="main">
     <header>
-      <!-- Ingevoegde logo -->
       <img id="logo" src="logo.png" alt="logo" />
       <div>
         <h1>Eerste test site Cees</h1>
-        <p class="lead">Een simpel startpunt — onder de titel vind je twee knoppen: showreel, weerbericht (n8n).</p>
+        <p class="lead">Een simpel startpunt — onder de titel vind je drie knoppen: showreel, weerbericht en n8n-test.</p>
       </div>
     </header>
 
@@ -34,8 +33,9 @@
       <div class="buttons">
         <a class="btn" href="https://www.linkedin.com/posts/cees-oddens-61096235a_tijd-voor-een-update-mijn-nieuwste-showreel-activity-7384656566764990464-Pmhq?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFl8guwBCAmJnHiNWf_-U0znjmTkJpJvrsA" target="_blank" rel="noopener noreferrer">▶︎ Showreel</a>
         <a class="btn" href="#" role="button" id="weerBtn">☁️ Weerbericht (n8n)</a>
+        <a class="btn" href="#" role="button" id="n8nTestBtn">⚙️ Test n8n workflow</a>
       </div>
-      <p class="small">Tip: klik op de knop om het weerbericht van Amsterdam op te halen.</p>
+      <p class="small">Tip: klik op een knop om iets op te halen via n8n of een externe API.</p>
     </section>
 
     <footer>
@@ -44,10 +44,10 @@
   </main>
 
   <script>
+    // --- Bestaande weerknop ---
     const weerBtn = document.getElementById('weerBtn');
-
     weerBtn.addEventListener('click', async () => {
-      const apiKey = 'JE_API_KEY_HIER'; // vervang door je eigen API key
+      const apiKey = 'JE_API_KEY_HIER'; // vervang door je eigen OpenWeather API key
       const city = 'Amsterdam,nl';
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=nl`;
 
@@ -64,6 +64,26 @@
         alert(message);
       } catch (err) {
         alert('Kon het weer niet ophalen: ' + err.message);
+      }
+    });
+
+    // --- NIEUWE n8n-testknop ---
+    const n8nBtn = document.getElementById('n8nTestBtn');
+    n8nBtn.addEventListener('click', async () => {
+      try {
+        const res = await fetch("https://ceesodd.app.n8n.cloud/webhook-test/edda9c43-649c-460b-8c83-e38e24176a30", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            naam: "Cees",
+            test: "Hallo vanuit je website!"
+          })
+        });
+
+        const data = await res.json();
+        alert("Antwoord van n8n:\n" + JSON.stringify(data, null, 2));
+      } catch (err) {
+        alert("Fout bij communicatie met n8n: " + err.message);
       }
     });
   </script>
