@@ -82,7 +82,12 @@ weerBtn.addEventListener('click', async () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const data = await res.json();
     // Pas dit aan op basis van je n8n response (bijv. als het weerdata bevat)
-    const message = `Weerbericht ontvangen via n8n: ${JSON.stringify(data, null, 2)}`;
+    let message = `Weerbericht ontvangen via n8n.`;
+    if (data.weather && data.main) {
+      message = `Het weer in ${data.name || 'Amsterdam'}:\n${data.weather[0].description}\nTemperatuur: ${data.main.temp}°C\nVoelt als: ${data.main.feels_like}°C`;
+    } else {
+      message += ` Raw response: ${JSON.stringify(data, null, 2)}`;
+    }
     showMessage(message);
     console.log('Weer webhook response:', data); // Debug log
   } catch (err) {
