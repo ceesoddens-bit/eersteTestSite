@@ -1,11 +1,46 @@
 <!doctype html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8">
-  <title>Mijn eenvoudige site</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Eerste test site Cees</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f7fb}
+    .card{width:min(760px,95%);background:white;border-radius:12px;box-shadow:0 6px 24px rgba(20,30,60,0.08);padding:28px}
+    header{display:flex;align-items:center;gap:16px}
+    #logo{width:120px;height:auto;border-radius:0;display:block}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 18px;color:#586074}
+    .buttons{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{padding:10px 14px;border-radius:8px;border:1px solid #dbe3f2;background:#fff;cursor:pointer;text-decoration:none;color:#0b3b84;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+    .btn[aria-disabled="true"]{opacity:0.5;cursor:not-allowed}
+    .small{font-size:13px;color:#6b7280}
+    footer{margin-top:18px;font-size:13px;color:#94a3b8}
+  </style>
 </head>
 <body>
-  <h1>Hallo — dit is mijn GitHub Pages site!</h1>
-  <p>Gemaakt door: <strong>gebruikersnaam</strong></p>
+  <main class="card" role="main">
+    <header>
+      <!-- Ingevoegde logo -->
+      <img id="logo" src="HandgeschrevenLogoCees.ai" alt="Handgeschreven logo van Cees" />
+      <div>
+        <h1>Eerste test site Cees</h1>
+        <p class="lead">Een simpel startpunt — onder de titel vind je drie knoppen: showreel, weerbericht (n8n) en logo upload.</p>
+      </div>
+    </header>
+
+    <section style="margin-top:18px">
+      <div class="buttons">
+        <a class="btn" href="https://www.linkedin.com/posts/cees-oddens-61096235a_tijd-voor-een-update-mijn-nieuwste-showreel-activity-7384656566764990464-Pmhq?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFl8guwBCAmJnHiNWf_-U0znjmTkJpJvrsA" target="_blank" rel="noopener noreferrer">▶︎ Showreel</a>
+        <a class="btn" href="#" role="button" aria-disabled="true" data-link="https://example.com/n8n-webhook" onclick="event.preventDefault()">☁️ Weerbericht (n8n) — werkt nog niet</a>
+      </div>
+      <p class="small">Tip: de n8n-knop is nu uitgeschakeld omdat de workflow nog niet live is. Als je wilt kan ik een voorbeeld-webhook URL toevoegen of de button later activeren.</p>
+    </section>
+
+    <footer>
+      <p class="small">Gebouwd met eenvoudige HTML/CSS — pas gerust teksten, kleuren of links aan.</p>
+    </footer>
+  </main>
 </body>
 </html>
