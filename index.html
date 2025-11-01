@@ -1,91 +1,130 @@
 <!doctype html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Eerste test site Cees</title>
-  <style>
-    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
-    body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f7fb}
-    .card{width:min(760px,95%);background:white;border-radius:12px;box-shadow:0 6px 24px rgba(20,30,60,0.08);padding:28px}
-    header{display:flex;align-items:center;gap:16px}
-    #logo{width:120px;height:auto;border-radius:0;display:block}
-    h1{margin:0;font-size:20px}
-    p.lead{margin:6px 0 18px;color:#586074}
-    .buttons{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{padding:10px 14px;border-radius:8px;border:1px solid #dbe3f2;background:#fff;cursor:pointer;text-decoration:none;color:#0b3b84;font-weight:600;display:inline-flex;align-items:center;gap:8px}
-    .btn[aria-disabled="true"]{opacity:0.5;cursor:not-allowed}
-    .small{font-size:13px;color:#6b7280}
-    footer{margin-top:18px;font-size:13px;color:#94a3b8}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Eerste test site Cees</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f7fb;padding:1rem}
+.card{width:min(760px,95%);background:white;border-radius:12px;box-shadow:0 6px 24px rgba(20,30,60,0.08);padding:28px}
+header{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+#logo{width:120px;height:auto;border-radius:0;display:block;object-fit:contain}
+h1{margin:0;font-size:20px;flex:1}
+p.lead{margin:6px 0 18px;color:#586074}
+.buttons{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:10px 14px;border-radius:8px;border:1px solid #dbe3f2;background:#fff;cursor:pointer;text-decoration:none;color:#0b3b84;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:background-color 0.2s, opacity 0.2s}
+.btn:focus{outline:2px solid #0b3b84;outline-offset:2px}
+.btn:hover:not([aria-disabled="true"]){background:#f0f4ff}
+.btn[aria-disabled="true"]{opacity:0.5;cursor:not-allowed}
+.btn .spinner{display:none;align-items:center;gap:4px}
+.btn.loading .spinner{display:inline-flex}
+.btn.loading .label{display:none}
+.small{font-size:13px;color:#6b7280}
+#message{display:none;margin-top:16px;padding:12px;border-radius:8px;background:#f0f9ff;border:1px solid #0ea5e9;color:#0369a1}
+#message.error{background:#fef2f2;border-color:#ef4444;color:#dc2626}
+footer{margin-top:18px;font-size:13px;color:#94a3b8;text-align:center}
+@media (max-width: 480px) {.card{padding:20px};header{flex-direction:column;text-align:center};h1{font-size:18px}}
+</style>
 </head>
 <body>
-  <main class="card" role="main">
-    <header>
-      <img id="logo" src="logo.png" alt="logo" />
-      <div>
-        <h1>Eerste test site Cees</h1>
-        <p class="lead">Een simpel startpunt — onder de titel vind je drie knoppen: showreel, weerbericht en n8n-test.</p>
-      </div>
-    </header>
+<main class="card" role="main">
+<header>
+<img id="logo" src="logo.png" alt="Cees Motion Design logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjYwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjYwIiB5PSIzNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIwIiBmaWxsPSIjY2NjIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Mb2dvPC90ZXh0Pjwvc3ZnPg=='" />
+<div>
+<h1>Eerste test site Cees</h1>
+<p class="lead">Een simpel startpunt — onder de titel vind je drie knoppen: showreel, weerbericht en n8n-test.</p>
+</div>
+</header>
+<section style="margin-top:18px">
+<div class="buttons">
+<a class="btn" href="https://www.linkedin.com/posts/cees-oddens-61096235a_tijd-voor-een-update-mijn-nieuwste-showreel-activity-7384656566764990464-Pmhq?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFl8guwBCAmJnHiNWf_-U0znjmTkJpJvrsA" target="_blank" rel="noopener noreferrer">▶︎ Showreel</a>
+<button class="btn" role="button" id="weerBtn" aria-label="Haal het weerbericht op voor Amsterdam via n8n">☁️ Weerbericht (n8n)</button>
+<button class="btn" role="button" id="n8nTestBtn" aria-label="Test de n8n workflow">⚙️ Test n8n workflow</button>
+</div>
+<p class="small">Tip: klik op een knop om iets op te halen via n8n of een externe API.</p>
+<div id="message" role="status" aria-live="polite"></div>
+</section>
+<footer>
+<p class="small">Gebouwd met eenvoudige HTML/CSS</p>
+</footer>
+</main>
+<script>
+// Utility functie voor messages tonen/verbergen
+function showMessage(text, isError = false) {
+  const msgEl = document.getElementById('message');
+  msgEl.textContent = text;
+  msgEl.className = isError ? 'error' : '';
+  msgEl.style.display = 'block';
+  setTimeout(() => { msgEl.style.display = 'none'; }, 5000); // Auto-hide na 5s
+}
 
-    <section style="margin-top:18px">
-      <div class="buttons">
-        <a class="btn" href="https://www.linkedin.com/posts/cees-oddens-61096235a_tijd-voor-een-update-mijn-nieuwste-showreel-activity-7384656566764990464-Pmhq?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFl8guwBCAmJnHiNWf_-U0znjmTkJpJvrsA" target="_blank" rel="noopener noreferrer">▶︎ Showreel</a>
-        <a class="btn" href="#" role="button" id="weerBtn">☁️ Weerbericht (n8n)</a>
-        <a class="btn" href="#" role="button" id="n8nTestBtn">⚙️ Test n8n workflow</a>
-      </div>
-      <p class="small">Tip: klik op een knop om iets op te halen via n8n of een externe API.</p>
-    </section>
+// --- Weerknop (verbeterd met loading en betere error handling) ---
+const weerBtn = document.getElementById('weerBtn');
+weerBtn.addEventListener('click', async () => {
+  const apiKey = 'JE_API_KEY_HIER'; // VERVANG DIT! Haal van openweathermap.org
+  if (apiKey === 'JE_API_KEY_HIER') {
+    showMessage('Voeg je OpenWeather API key toe in de code (regel ~130).', true);
+    return;
+  }
+  const city = 'Amsterdam,nl';
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=nl`;
+  
+  weerBtn.setAttribute('aria-disabled', 'true');
+  weerBtn.classList.add('loading');
+  weerBtn.innerHTML = '<span class="spinner">⏳</span><span class="label">Laden...</span>';
+  
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    const data = await response.json();
+    const message = `Het weer in ${data.name}:\n${data.weather[0].description}\nTemperatuur: ${data.main.temp}°C\nVoelt als: ${data.main.feels_like}°C`;
+    showMessage(message);
+    console.log('Weer data ontvangen:', data); // Debug log
+  } catch (err) {
+    console.error('Weer fetch error:', err); // Debug log
+    showMessage(`Kon het weer niet ophalen: ${err.message}`, true);
+  } finally {
+    weerBtn.removeAttribute('aria-disabled');
+    weerBtn.classList.remove('loading');
+    weerBtn.innerHTML = '☁️ Weerbericht (n8n)';
+  }
+});
 
-    <footer>
-      <p class="small">Gebouwd met eenvoudige HTML/CSS</p>
-    </footer>
-  </main>
-
-  <script>
-    // --- Bestaande weerknop ---
-    const weerBtn = document.getElementById('weerBtn');
-    weerBtn.addEventListener('click', async () => {
-      const apiKey = 'JE_API_KEY_HIER'; // vervang door je eigen OpenWeather API key
-      const city = 'Amsterdam,nl';
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=nl`;
-
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Fout bij ophalen weer');
-
-        const data = await response.json();
-        const message = `Het weer in ${data.name}:\n` +
-                        `${data.weather[0].description}\n` +
-                        `Temperatuur: ${data.main.temp}°C\n` +
-                        `Voelt als: ${data.main.feels_like}°C`;
-
-        alert(message);
-      } catch (err) {
-        alert('Kon het weer niet ophalen: ' + err.message);
-      }
+// --- n8n-testknop (verbeterd met CORS expliciet, loading en debug) ---
+const n8nBtn = document.getElementById('n8nTestBtn');
+const n8nUrl = "https://ceesodd.app.n8n.cloud/webhook-test/edda9c43-649c-460b-8c83-e38e24176a30"; // Test URL; voor prod: /webhook/ ipv /webhook-test/
+n8nBtn.addEventListener('click', async () => {
+  n8nBtn.setAttribute('aria-disabled', 'true');
+  n8nBtn.classList.add('loading');
+  n8nBtn.innerHTML = '<span class="spinner">⏳</span><span class="label">Laden...</span>';
+  
+  try {
+    const res = await fetch(n8nUrl, {
+      method: "POST",
+      mode: 'cors', // Expliciet voor CORS; als issue, check n8n settings
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        naam: "Cees",
+        test: "Hallo vanuit je website!",
+        timestamp: new Date().toISOString() // Extra data voor n8n
+      })
     });
-
-    // --- NIEUWE n8n-testknop ---
-    const n8nBtn = document.getElementById('n8nTestBtn');
-    n8nBtn.addEventListener('click', async () => {
-      try {
-        const res = await fetch("https://ceesodd.app.n8n.cloud/webhook-test/edda9c43-649c-460b-8c83-e38e24176a30", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            naam: "Cees",
-            test: "Hallo vanuit je website!"
-          })
-        });
-
-        const data = await res.json();
-        alert("Antwoord van n8n:\n" + JSON.stringify(data, null, 2));
-      } catch (err) {
-        alert("Fout bij communicatie met n8n: " + err.message);
-      }
-    });
-  </script>
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    showMessage(`Antwoord van n8n: ${JSON.stringify(data, null, 2)}`);
+    console.log('n8n response:', data); // Debug log
+  } catch (err) {
+    console.error('n8n fetch error:', err); // Debug log – check voor CORS hints
+    showMessage(`Fout bij communicatie met n8n: ${err.message} (Check console voor details.)`, true);
+    // Tip: Als CORS error, enable in n8n Webhook > Options > Allowed Origins: *
+  } finally {
+    n8nBtn.removeAttribute('aria-disabled');
+    n8nBtn.classList.remove('loading');
+    n8nBtn.innerHTML = '⚙️ Test n8n workflow';
+  }
+});
+</script>
 </body>
 </html>
