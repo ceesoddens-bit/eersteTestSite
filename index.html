@@ -39,7 +39,7 @@ footer{margin-top:18px;font-size:13px;color:#94a3b8;text-align:center}
 <section style="margin-top:18px">
 <div class="buttons">
 <a class="btn" href="https://www.linkedin.com/posts/cees-oddens-61096235a_tijd-voor-een-update-mijn-nieuwste-showreel-activity-7384656566764990464-Pmhq?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFl8guwBCAmJnHiNWf_-U0znjmTkJpJvrsA" target="_blank" rel="noopener noreferrer">▶︎ Showreel</a>
-<button class="btn" role="button" id="weerBtn" aria-label="Haal het weerbericht op voor Amsterdam via n8n">☁️ Weerbericht (n8n)</button>
+<button class="btn" role="button" id="weerBtn" aria-label="Haal het weerbericht op voor Amsterdam via n8n webhook">☁️ Weerbericht (n8n)</button>
 <button class="btn" role="button" id="n8nTestBtn" aria-label="Test de n8n workflow">⚙️ Test n8n workflow</button>
 </div>
 <p class="small">Tip: klik op een knop om iets op te halen via n8n of een externe API.</p>
@@ -58,47 +58,50 @@ function showMessage(text, isError = false) {
   msgEl.style.display = 'block';
   setTimeout(() => { msgEl.style.display = 'none'; }, 5000); // Auto-hide na 5s
 }
-
-// --- Weerknop (verbeterd met loading en betere error handling) ---
+// --- Weerknop (aangepast: stuurt nu naar n8n webhook in plaats van directe API-call) ---
 const weerBtn = document.getElementById('weerBtn');
+const n8nUrl = "https://ceesodd.app.n8n.cloud/webhook-test/edda9c43-649c-460b-8c83-e38e24176a30"; // Deel webhook URL (zorg dat je workflow dit afhandelt voor weerdata)
 weerBtn.addEventListener('click', async () => {
-  const apiKey = 'JE_API_KEY_HIER'; // VERVANG DIT! Haal van openweathermap.org
-  if (apiKey === 'JE_API_KEY_HIER') {
-    showMessage('Voeg je OpenWeather API key toe in de code (regel ~130).', true);
-    return;
-  }
-  const city = 'Amsterdam,nl';
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=nl`;
-  
   weerBtn.setAttribute('aria-disabled', 'true');
   weerBtn.classList.add('loading');
   weerBtn.innerHTML = '<span class="spinner">⏳</span><span class="label">Laden...</span>';
-  
+ 
   try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    const data = await response.json();
-    const message = `Het weer in ${data.name}:\n${data.weather[0].description}\nTemperatuur: ${data.main.temp}°C\nVoelt als: ${data.main.feels_like}°C`;
+    const res = await fetch(n8nUrl, {
+      method: "POST",
+      mode: 'cors', // Expliciet voor CORS; als issue, check n8n settings
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "weerbericht", // Identificeer de actie in je n8n workflow
+        stad: "Amsterdam", // Stuur stad mee voor het weer
+        land: "nl", // Landcode
+        timestamp: new Date().toISOString() // Extra data
+      })
+    });
+   
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    // Pas dit aan op basis van je n8n response (bijv. als het weerdata bevat)
+    const message = `Weerbericht ontvangen via n8n: ${JSON.stringify(data, null, 2)}`;
     showMessage(message);
-    console.log('Weer data ontvangen:', data); // Debug log
+    console.log('Weer webhook response:', data); // Debug log
   } catch (err) {
-    console.error('Weer fetch error:', err); // Debug log
-    showMessage(`Kon het weer niet ophalen: ${err.message}`, true);
+    console.error('Weer webhook error:', err); // Debug log
+    showMessage(`Fout bij ophalen weer via webhook: ${err.message} (Check console voor details.)`, true);
+    // Tip: Zorg dat je n8n workflow de 'weerbericht' actie afhandelt en weerdata terugstuurt
   } finally {
     weerBtn.removeAttribute('aria-disabled');
     weerBtn.classList.remove('loading');
     weerBtn.innerHTML = '☁️ Weerbericht (n8n)';
   }
 });
-
-// --- n8n-testknop (verbeterd met CORS expliciet, loading en debug) ---
+// --- n8n-testknop (ongewijzigd, voor referentie) ---
 const n8nBtn = document.getElementById('n8nTestBtn');
-const n8nUrl = "https://ceesodd.app.n8n.cloud/webhook-test/edda9c43-649c-460b-8c83-e38e24176a30"; // Test URL; voor prod: /webhook/ ipv /webhook-test/
 n8nBtn.addEventListener('click', async () => {
   n8nBtn.setAttribute('aria-disabled', 'true');
   n8nBtn.classList.add('loading');
   n8nBtn.innerHTML = '<span class="spinner">⏳</span><span class="label">Laden...</span>';
-  
+ 
   try {
     const res = await fetch(n8nUrl, {
       method: "POST",
@@ -110,7 +113,7 @@ n8nBtn.addEventListener('click', async () => {
         timestamp: new Date().toISOString() // Extra data voor n8n
       })
     });
-    
+   
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const data = await res.json();
     showMessage(`Antwoord van n8n: ${JSON.stringify(data, null, 2)}`);
