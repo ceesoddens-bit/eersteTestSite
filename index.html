@@ -72,7 +72,7 @@
     n8nBtn.addEventListener('click', async () => {
       try {
         const res = await fetch("https://ceesodd.app.n8n.cloud/webhook-test/edda9c43-649c-460b-8c83-e38e24176a30", {
-          method: "POST",
+          method: "GET",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             naam: "Cees",
