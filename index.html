@@ -17,12 +17,12 @@ p.lead{margin:6px 0 18px;color:#586074}
 .btn:focus{outline:2px solid #0b3b84;outline-offset:2px}
 .btn:hover:not([aria-disabled="true"]){background:#f0f4ff}
 .btn[aria-disabled="true"]{opacity:0.5;cursor:not-allowed}
-.btn .spinner{display:none;align-items:center;gap:4px}
-.btn.loading .spinner{display:inline-flex}
-.btn.loading .label{display:none}
 .small{font-size:13px;color:#6b7280}
 #message{display:none;margin-top:16px;padding:12px;border-radius:8px;background:#f0f9ff;border:1px solid #0ea5e9;color:#0369a1}
 #message.error{background:#fef2f2;border-color:#ef4444;color:#dc2626}
+#weerResponse { display: none; margin-top: 10px; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; max-height: 300px; overflow-y: auto; }
+#weerResponse h4 { margin: 0 0 10px 0; font-size: 16px; }
+#weerResponse pre { margin: 0; white-space: pre-wrap; font-size: 14px; }
 footer{margin-top:18px;font-size:13px;color:#94a3b8;text-align:center}
 @media (max-width: 480px) {.card{padding:20px};header{flex-direction:column;text-align:center};h1{font-size:18px}}
 </style>
@@ -44,13 +44,17 @@ footer{margin-top:18px;font-size:13px;color:#94a3b8;text-align:center}
 </div>
 <p class="small">Tip: klik op een knop om iets op te halen via n8n of een externe API.</p>
 <div id="message" role="status" aria-live="polite"></div>
+<div id="weerResponse">
+    <h4>Response van n8n (weer):</h4>
+    <pre id="weerResponseText"></pre>
+</div>
 </section>
 <footer>
 <p class="small">Gebouwd met eenvoudige HTML/CSS</p>
 </footer>
 </main>
 <script>
-// Utility functie voor messages tonen/verbergen
+// Utility functie voor messages tonen/verbergen (voor andere knoppen)
 function showMessage(text, isError = false) {
   const msgEl = document.getElementById('message');
   msgEl.textContent = text;
@@ -58,75 +62,106 @@ function showMessage(text, isError = false) {
   msgEl.style.display = 'block';
   setTimeout(() => { msgEl.style.display = 'none'; }, 5000); // Auto-hide na 5s
 }
-// --- Weerknop (aangepast: stuurt nu naar n8n webhook in plaats van directe API-call) ---
+// --- Weerknop (nu precies zoals in de voorbeeldcode: met status, response div, text-first read, etc.) ---
 const weerBtn = document.getElementById('weerBtn');
-const n8nUrl = "https://ceesodd.app.n8n.cloud/webhook-test/edda9c43-649c-460b-8c83-e38e24176a30"; // Deel webhook URL (zorg dat je workflow dit afhandelt voor weerdata)
+const n8nUrl = "https://ceesodd.app.n8n.cloud/webhook/edda9c43-649c-460b-8c83-e38e24176a30"; // Geüpdatet naar /webhook/ zoals in voorbeeld
 weerBtn.addEventListener('click', async () => {
-  weerBtn.setAttribute('aria-disabled', 'true');
-  weerBtn.classList.add('loading');
-  weerBtn.innerHTML = '<span class="spinner">⏳</span><span class="label">Laden...</span>';
+  const button = weerBtn;
+  const status = document.getElementById('message');
+  const responseDiv = document.getElementById('weerResponse');
+  const responseText = document.getElementById('weerResponseText');
+ 
+  button.setAttribute('aria-disabled', 'true');
+  button.classList.add('loading');
+  button.innerHTML = '<span class="spinner">⏳</span><span class="label">Versturen...</span>'; // Aangepast tekst zoals voorbeeld
+  status.textContent = 'Bezig met versturen...';
+  status.className = '';
+  status.style.display = 'block';
+  responseDiv.style.display = 'none'; // Verberg vorige response
  
   try {
-    const res = await fetch(n8nUrl, {
-      method: "POST",
-      mode: 'cors', // Expliciet voor CORS; als issue, check n8n settings
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "weerbericht", // Identificeer de actie in je n8n workflow
-        stad: "Amsterdam", // Stuur stad mee voor het weer
-        land: "nl", // Landcode
-        timestamp: new Date().toISOString() // Extra data
+    const response = await fetch(n8nUrl, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        action: "weerbericht", // Voor je workflow
+        stad: "Amsterdam",
+        land: "nl",
+        message: 'Hallo vanuit de website! (Weer request)',
+        timestamp: new Date().toISOString()
       })
     });
    
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    const data = await res.json();
-    // Pas dit aan op basis van je n8n response (bijv. als het weerdata bevat)
-    let message = `Weerbericht ontvangen via n8n.`;
-    if (data.weather && data.main) {
-      message = `Het weer in ${data.name || 'Amsterdam'}:\n${data.weather[0].description}\nTemperatuur: ${data.main.temp}°C\nVoelt als: ${data.main.feels_like}°C`;
-    } else {
-      message += ` Raw response: ${JSON.stringify(data, null, 2)}`;
+    const responseBodyText = await response.text(); // Eerst altijd als tekst lezen
+   
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(responseBodyText); // Probeer te parsen als JSON
+      // Format JSON mooier
+      responseText.textContent = JSON.stringify(parsedBody, null, 2);
+    } catch (parseError) {
+      // Als geen JSON, toon als platte tekst
+      responseText.textContent = responseBodyText;
     }
-    showMessage(message);
-    console.log('Weer webhook response:', data); // Debug log
-  } catch (err) {
-    console.error('Weer webhook error:', err); // Debug log
-    showMessage(`Fout bij ophalen weer via webhook: ${err.message} (Check console voor details.)`, true);
-    // Tip: Zorg dat je n8n workflow de 'weerbericht' actie afhandelt en weerdata terugstuurt
+   
+    if (response.ok) {
+      status.textContent = 'Webhook succesvol getriggerd!';
+      status.className = ''; // Gebruik geen error class voor success
+      responseDiv.style.display = 'block';
+    } else {
+      let errorMsg = responseBodyText || 'Onbekende fout';
+      try {
+        const parsedError = JSON.parse(responseBodyText);
+        errorMsg = parsedError.message || errorMsg;
+      } catch {}
+      status.textContent = 'Server-fout (' + response.status + '): ' + errorMsg;
+      status.className = 'error';
+      responseDiv.style.display = 'block'; // Toon error ook in response-veld
+    }
+  } catch (error) {
+    let errorMsg = error.message;
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      errorMsg = 'Netwerkfout (mogelijk CORS of geen internet). Probeer een lokale server.';
+    }
+    status.textContent = 'Fout: ' + errorMsg;
+    status.className = 'error';
+    console.error('Volledige error:', error);
   } finally {
-    weerBtn.removeAttribute('aria-disabled');
-    weerBtn.classList.remove('loading');
-    weerBtn.innerHTML = '☁️ Weerbericht (n8n)';
+    button.removeAttribute('aria-disabled');
+    button.classList.remove('loading');
+    button.innerHTML = '☁️ Weerbericht (n8n)';
   }
 });
 // --- n8n-testknop (ongewijzigd, voor referentie) ---
 const n8nBtn = document.getElementById('n8nTestBtn');
+const testN8nUrl = "https://ceesodd.app.n8n.cloud/webhook-test/edda9c43-649c-460b-8c83-e38e24176a30"; // Hou oudere URL voor testknop
 n8nBtn.addEventListener('click', async () => {
   n8nBtn.setAttribute('aria-disabled', 'true');
   n8nBtn.classList.add('loading');
   n8nBtn.innerHTML = '<span class="spinner">⏳</span><span class="label">Laden...</span>';
  
   try {
-    const res = await fetch(n8nUrl, {
+    const res = await fetch(testN8nUrl, {
       method: "POST",
-      mode: 'cors', // Expliciet voor CORS; als issue, check n8n settings
+      mode: 'cors',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         naam: "Cees",
         test: "Hallo vanuit je website!",
-        timestamp: new Date().toISOString() // Extra data voor n8n
+        timestamp: new Date().toISOString()
       })
     });
    
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const data = await res.json();
     showMessage(`Antwoord van n8n: ${JSON.stringify(data, null, 2)}`);
-    console.log('n8n response:', data); // Debug log
+    console.log('n8n response:', data);
   } catch (err) {
-    console.error('n8n fetch error:', err); // Debug log – check voor CORS hints
+    console.error('n8n fetch error:', err);
     showMessage(`Fout bij communicatie met n8n: ${err.message} (Check console voor details.)`, true);
-    // Tip: Als CORS error, enable in n8n Webhook > Options > Allowed Origins: *
   } finally {
     n8nBtn.removeAttribute('aria-disabled');
     n8nBtn.classList.remove('loading');
