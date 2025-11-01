@@ -33,14 +33,39 @@
     <section style="margin-top:18px">
       <div class="buttons">
         <a class="btn" href="https://www.linkedin.com/posts/cees-oddens-61096235a_tijd-voor-een-update-mijn-nieuwste-showreel-activity-7384656566764990464-Pmhq?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFl8guwBCAmJnHiNWf_-U0znjmTkJpJvrsA" target="_blank" rel="noopener noreferrer">▶︎ Showreel</a>
-        <a class="btn" href="#" role="button" aria-disabled="true" data-link="https://example.com/n8n-webhook" onclick="event.preventDefault()">☁️ Weerbericht (n8n) — werkt nog niet</a>
+        <a class="btn" href="#" role="button" id="weerBtn">☁️ Weerbericht (n8n)</a>
       </div>
-      <p class="small">Tip: de n8n-knop is nu uitgeschakeld omdat de workflow nog niet live is. Als je wilt kan ik een voorbeeld-webhook URL toevoegen of de button later activeren.</p>
+      <p class="small">Tip: klik op de knop om het weerbericht van Amsterdam op te halen.</p>
     </section>
 
     <footer>
       <p class="small">Gebouwd met eenvoudige HTML/CSS</p>
     </footer>
   </main>
+
+  <script>
+    const weerBtn = document.getElementById('weerBtn');
+
+    weerBtn.addEventListener('click', async () => {
+      const apiKey = 'JE_API_KEY_HIER'; // vervang door je eigen API key
+      const city = 'Amsterdam,nl';
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=nl`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Fout bij ophalen weer');
+
+        const data = await response.json();
+        const message = `Het weer in ${data.name}:\n` +
+                        `${data.weather[0].description}\n` +
+                        `Temperatuur: ${data.main.temp}°C\n` +
+                        `Voelt als: ${data.main.feels_like}°C`;
+
+        alert(message);
+      } catch (err) {
+        alert('Kon het weer niet ophalen: ' + err.message);
+      }
+    });
+  </script>
 </body>
 </html>
